@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { Ownable } from "@Openzeppelin/contracts/access/Ownable.sol";
-import { IERC20 } from "@Openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { DAO } from "./DAO.sol";
+import {Ownable} from "@Openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@Openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {DAO} from "./DAO.sol";
 
 contract DAOTreasury is Ownable {
-
     // DAO contract reference
     DAO public dao;
 
@@ -68,7 +67,7 @@ contract DAOTreasury is Ownable {
         if (token == address(0)) {
             // Send ETH
             require(address(this).balance >= amount, "Insufficient ETH balance");
-            (bool success, ) = recipient.call{value: amount}("");
+            (bool success,) = recipient.call{value: amount}("");
             require(success, "ETH transfer failed");
         } else {
             // ERC20
@@ -78,7 +77,6 @@ contract DAOTreasury is Ownable {
         }
 
         emit FundsSpend(proposalId, recipient, amount, token);
-
     }
 
     /**
@@ -103,7 +101,7 @@ contract DAOTreasury is Ownable {
     }
 
     // Allow contract to receive ETH
-    receive () external payable {
+    receive() external payable {
         emit TreasuryFunded(msg.sender, msg.value);
     }
 
@@ -113,14 +111,12 @@ contract DAOTreasury is Ownable {
 
         if (token == address(0)) {
             require(address(this).balance >= amount, "Insufficient ETH balance");
-            (bool success, ) = recipient.call{value: amount}("");
+            (bool success,) = recipient.call{value: amount}("");
             require(success, "ETH transfer failed");
         } else {
             IERC20 tokenContract = IERC20(token);
             require(tokenContract.balanceOf(address(this)) >= amount, "Insufficient token balance");
             require(tokenContract.transfer(recipient, amount), "Token transfer failed");
         }
-
     }
-
 }

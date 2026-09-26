@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { ERC20 } from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import { Ownable } from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import {ERC20} from "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 /**
  * @title Dao Governance Token
@@ -11,7 +11,6 @@ import { Ownable } from "../lib/openzeppelin-contracts/contracts/access/Ownable.
  * This token represents voting power in the DAO
  */
 contract DAOGovernanceToken is ERC20, Ownable {
-
     // True if if msg.sender has delegated voting power, false if not
     mapping(address => bool) private s_hasDelegated;
 
@@ -23,7 +22,7 @@ contract DAOGovernanceToken is ERC20, Ownable {
 
     event VotingPowerDelegated(address indexed delegator, address indexed delegate, uint256 amount);
     event VotingPowerUndelegated(address indexed delegator, address indexed delegate, uint256 amount);
-    
+
     /**
      * @dev Constructor gives owner all the initial tokens
      * @param name Token name
@@ -31,7 +30,10 @@ contract DAOGovernanceToken is ERC20, Ownable {
      * @param owner Owner of this smart contract
      * @param initialSupply Initial token supply
      */
-    constructor(string memory name, string memory symbol, address owner, uint256 initialSupply) ERC20(name, symbol) Ownable(owner) {
+    constructor(string memory name, string memory symbol, address owner, uint256 initialSupply)
+        ERC20(name, symbol)
+        Ownable(owner)
+    {
         _mint(owner, initialSupply);
     }
 
@@ -70,7 +72,6 @@ contract DAOGovernanceToken is ERC20, Ownable {
         s_hasDelegated[msg.sender] = true;
 
         emit VotingPowerDelegated(msg.sender, delegate, amount);
-
     }
 
     /**
@@ -80,7 +81,7 @@ contract DAOGovernanceToken is ERC20, Ownable {
     function undelegateVotingPower(uint256 amount) external {
         require(s_hasDelegated[msg.sender], "No delegation found");
         require(amount > 0, "Amount must be greater than 0");
-        require(s_delegatedVotes[s_delegates[msg.sender]] >= amount, "Insufficient delegated amount" );
+        require(s_delegatedVotes[s_delegates[msg.sender]] >= amount, "Insufficient delegated amount");
 
         address delegate = s_delegates[msg.sender];
         _transfer(delegate, msg.sender, amount);
@@ -93,7 +94,6 @@ contract DAOGovernanceToken is ERC20, Ownable {
         }
 
         emit VotingPowerUndelegated(msg.sender, delegate, amount);
-
     }
 
     // Getter functions
@@ -102,7 +102,7 @@ contract DAOGovernanceToken is ERC20, Ownable {
      * @param account Address to check voting power
      * @return Total voting power
      */
-    function getVotingPower(address account) external view returns(uint256) {
+    function getVotingPower(address account) external view returns (uint256) {
         return balanceOf(account);
     }
 
@@ -111,7 +111,7 @@ contract DAOGovernanceToken is ERC20, Ownable {
      * @param user address to check if has delegated voting power
      * @return bool true if has delegated voting power, false if not
      */
-    function getHasDelegatedStatus(address user) external view returns(bool) {
+    function getHasDelegatedStatus(address user) external view returns (bool) {
         return s_hasDelegated[user];
     }
 
@@ -120,7 +120,7 @@ contract DAOGovernanceToken is ERC20, Ownable {
      * @param user address of the delegator to get the address that has been delegated voting power
      * @return address user that receives voting power
      */
-    function getDelegates(address user) external view returns(address) {
+    function getDelegates(address user) external view returns (address) {
         return s_delegates[user];
     }
 
@@ -129,8 +129,7 @@ contract DAOGovernanceToken is ERC20, Ownable {
      * @param user address that has receive voting power
      * @return uint256 Amount of tokens / voting power received
      */
-    function getDelegatedVotes(address user) external view returns(uint256) {
+    function getDelegatedVotes(address user) external view returns (uint256) {
         return s_delegatedVotes[user];
     }
-
 }

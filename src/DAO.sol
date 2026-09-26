@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { Ownable } from "@Openzeppelin/contracts/access/Ownable.sol";
-import { DAOGovernanceToken } from "./DAOGovernanceToken.sol";
-import { IDAOTreasury } from "./interfaces/IDAOTreasury.sol";
+import {Ownable} from "@Openzeppelin/contracts/access/Ownable.sol";
+import {DAOGovernanceToken} from "./DAOGovernanceToken.sol";
+import {IDAOTreasury} from "./interfaces/IDAOTreasury.sol";
 
 /**
  * @title DAO
@@ -12,7 +12,6 @@ import { IDAOTreasury } from "./interfaces/IDAOTreasury.sol";
  * Handles proposals creation, voting and execution
  */
 contract DAO is Ownable {
-
     struct Proposal {
         uint256 id;
         address proposer;
@@ -43,7 +42,16 @@ contract DAO is Ownable {
     mapping(uint256 => Proposal) public s_proposals;
 
     // Events
-    event ProposalCreated(uint256 indexed proposalId, address indexed proposer, string description, address recipient, uint256 amount, address token, uint256 startTime, uint256 endTime);
+    event ProposalCreated(
+        uint256 indexed proposalId,
+        address indexed proposer,
+        string description,
+        address recipient,
+        uint256 amount,
+        address token,
+        uint256 startTime,
+        uint256 endTime
+    );
     event Voted(uint256 indexed proposalId, address indexed voter, bool support, uint256 votes);
     event ProposalExecuted(uint256 indexed proposalId);
     event ProposalCanceled(uint256 indexed proposalId);
@@ -59,10 +67,10 @@ contract DAO is Ownable {
      * @param quorumVotes Minimum vores required for proposal to pass
      */
     constructor(
-        address owner, 
-        address governanceToken, 
+        address owner,
+        address governanceToken,
         address treasury,
-        uint256 proposalThreshold, 
+        uint256 proposalThreshold,
         uint256 votingPeriod,
         uint256 quorumVotes
     ) Ownable(owner) {
@@ -81,8 +89,14 @@ contract DAO is Ownable {
      * @param token Token address (address(0) for ETH)
      * @return proposalId The ID of the created proposal
      */
-    function createProposal(string memory description, address recipient, uint256 amount, address token) external returns(uint256 proposalId) {
-        require(s_governanceToken.getVotingPower(msg.sender) >= s_proposalThreshold, "Insufficient voting power to create proposal");
+    function createProposal(string memory description, address recipient, uint256 amount, address token)
+        external
+        returns (uint256 proposalId)
+    {
+        require(
+            s_governanceToken.getVotingPower(msg.sender) >= s_proposalThreshold,
+            "Insufficient voting power to create proposal"
+        );
         require(bytes(description).length > 0, "Description cannot be empty");
         require(recipient != address(0), "Invalid recipient address");
         require(amount > 0, "Amount must be greater than 0");
@@ -101,7 +115,16 @@ contract DAO is Ownable {
         proposal.executed = false;
         proposal.canceled = false;
 
-        emit ProposalCreated(proposalId, proposal.proposer, proposal.description, proposal.recipient, proposal.amount, proposal.token, proposal.startTime, proposal.endTime);
+        emit ProposalCreated(
+            proposalId,
+            proposal.proposer,
+            proposal.description,
+            proposal.recipient,
+            proposal.amount,
+            proposal.token,
+            proposal.startTime,
+            proposal.endTime
+        );
     }
 
     /**
@@ -163,7 +186,6 @@ contract DAO is Ownable {
         s_treasury.spendFunds(proposalId, proposal.recipient, proposal.amount, proposal.token);
 
         emit ProposalExecuted(proposalId);
-
     }
 
     /**
@@ -181,19 +203,23 @@ contract DAO is Ownable {
      * @return amount Amount of funds to be spent
      * @return token Token address for the proposal
      */
-    function getProposal(uint256 proposalId) external view returns (
-        address proposer,
-        string memory description,
-        uint256 forVotes,
-        uint256 againstVotes,
-        uint256 startTime,
-        uint256 endTime,
-        bool executed,
-        bool canceled,
-        address recipient,
-        uint256 amount,
-        address token
-    ) {
+    function getProposal(uint256 proposalId)
+        external
+        view
+        returns (
+            address proposer,
+            string memory description,
+            uint256 forVotes,
+            uint256 againstVotes,
+            uint256 startTime,
+            uint256 endTime,
+            bool executed,
+            bool canceled,
+            address recipient,
+            uint256 amount,
+            address token
+        )
+    {
         Proposal storage proposal = s_proposals[proposalId];
         return (
             proposal.proposer,
@@ -209,7 +235,7 @@ contract DAO is Ownable {
             proposal.token
         );
     }
-    
+
     /**
      * @dev Check if an address has voted on a proposal
      * @param proposalId ID of the proposal
@@ -221,25 +247,24 @@ contract DAO is Ownable {
         Proposal storage proposal = s_proposals[proposalId];
         return (proposal.hasVoted[voter], proposal.votedFor[voter]);
     }
-    
+
     /**
      * @dev Update DAO configuration (only owner)
      * @param proposalThreshold New proposal threshold
      * @param votingPeriod New voting period
      * @param quorumVotes New quorum votes
      */
-    function updateConfiguration(
-        uint256 proposalThreshold,
-        uint256 votingPeriod,
-        uint256 quorumVotes
-    ) external onlyOwner {
+    function updateConfiguration(uint256 proposalThreshold, uint256 votingPeriod, uint256 quorumVotes)
+        external
+        onlyOwner
+    {
         s_proposalThreshold = proposalThreshold;
         s_votingPeriod = votingPeriod;
         s_quorumVotes = quorumVotes;
-        
+
         emit ConfigurationUpdated(proposalThreshold, votingPeriod, quorumVotes);
     }
-    
+
     /**
      * @dev Set the treasury contract address (only owner)
      * @param _treasury New treasury contract address
@@ -248,7 +273,7 @@ contract DAO is Ownable {
         require(_treasury != address(0), "Invalid treasury address");
         s_treasury = IDAOTreasury(_treasury);
     }
-    
+
     /**
      * @dev Check if a proposal has passed
      * @param proposalId ID of the proposal
@@ -256,20 +281,19 @@ contract DAO is Ownable {
      */
     function proposalPassed(uint256 proposalId) external view returns (bool passed) {
         Proposal storage proposal = s_proposals[proposalId];
-        
+
         if (proposal.proposer == address(0) || proposal.canceled || proposal.executed) {
             return false;
         }
-        
+
         if (block.timestamp < proposal.endTime) {
             return false; // Voting not ended
         }
-        
+
         if (proposal.forVotes + proposal.againstVotes < s_quorumVotes) {
             return false; // Quorum not reached
         }
-        
+
         return proposal.forVotes > proposal.againstVotes;
     }
-
 }
